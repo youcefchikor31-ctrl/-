@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول الأنظمة الذكي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d12;
+            color: #cdd6f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* إطار الهاتف */
+        .phone-mockup {
+            width: 360px;
+            height: 720px;
+            background-color: #1e1e2e;
+            border: 14px solid #11111b;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 10px rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ثقب الكاميرا الأمامية */
+        .camera-hole {
+            width: 16px;
+            height: 16px;
+            background-color: #0d0d12;
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: inset 0 -2px 2px rgba(255,255,255,0.2);
+        }
+
+        /* الشاشة الداخلية للتطبيق */
+        .app-screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background-color: #1e1e2e;
+            padding: 50px 20px 20px;
+            box-sizing: border-box;
+        }
+
+        .app-screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        h2 {
+            text-align: center;
+            color: #89b4fa;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        #detectedType {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #bac2de;
+            transition: color 0.3s ease;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: #181825;
+            color: #a6e3a1;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        
+        textarea:focus {
+            border-color: #89b4fa;
+        }
+        
+        .clear-btn {
+            width: 100%;
+            background: #f38ba8;
+            color: #11111b;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .clear-btn:hover {
+            background: #eba0ac;
+        }
+        
+        .result-box {
+            background: #181825;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+            min-height: 25px;
+            font-family: monospace;
+            text-align: left;
+            direction: ltr;
+            color: #cba6f7;
+            border: 1px solid #45475a;
+            font-size: 13px;
+        }
+        
+        .result-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fab387;
+            margin-bottom: 5px;
+            display: block;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-mockup">
+        <div class="camera-hole"></div>
+        
+        <div class="app-screen">
+            <h2>المحول الذكي الفوري</h2>
+            
+            <div id="detectedType">النوع: بانتظار الإدخال...</div>
+            <textarea id="inputValue" rows="4" placeholder="اكتب النص، أو الصق الشفرة هنا... (تذكر المسافات بين الشفرات)" oninput="autoConvert()"></textarea>
+
+            <button class="clear-btn" onclick="clearAll()">🗑️ مسح الكل</button>
+
+            <div>
+                <span class="result-label">النص المترجم:</span>
+                <div id="outText" class="result-box"></div>
+
+                <span class="result-label">النظام الثنائي (Binary):</span>
+                <div id="outBin" class="result-box"></div>
+
+                <span class="result-label">النظام الثماني (Octal):</span>
+                <div id="outOct" class="result-box"></div>
+
+                <span class="result-label">النظام السداسي عشر (Hexadecimal):</span>
+                <div id="outHex" class="result-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function autoConvert() {
+            let input = document.getElementById('inputValue').value;
+            let inputTrimmed = input.trim();
+            const typeLabel = document.getElementById('detectedType');
+
+            // إذا كان المربع فارغاً
+            if (!inputTrimmed) {
+                clearOutputs();
+                typeLabel.innerText = 'النوع: بانتظار الإدخال...';
+                typeLabel.style.color = '#bac2de';
+                return;
+            }
+
+            // خوارزمية التعرف التلقائي
+            let type = 'text';
+            if (/^[01\s]+$/.test(inputTrimmed)) {
+                type = 'binary';
+            } else if (/^[0-7\s]+$/.test(inputTrimmed)) {
+                type = 'octal';
+            } else if (/^[0-9a-fA-F\s]+$/.test(inputTrimmed)) {
+                type = 'hex';
+            }
+
+            // تغيير لون واسم حالة الإدخال
+            let typeName = "";
+            if (type === 'binary') { typeName = 'نظام ثنائي (Binary)'; typeLabel.style.color = '#a6e3a1'; }
+            else if (type === 'octal') { typeName = 'نظام ثماني (Octal)'; typeLabel.style.color = '#fab387'; }
+            else if (type === 'hex') { typeName = 'نظام سداسي عشر (Hex)'; typeLabel.style.color = '#89b4fa'; }
+            else { typeName = 'نص (Text)'; typeLabel.style.color = '#f38ba8'; }
+
+            typeLabel.innerText = 'تم التعرف على: ' + typeName;
+
+            let outText = "", outBin = [], outOct = [], outHex = [];
+
+            try {
+                if (type === 'text') {
+                    outText = inputTrimmed;
+                    for (let i = 0; i < inputTrimmed.length; i++) {
+                        let charCode = inputTrimmed.charCodeAt(i);
+                        outBin.push(charCode.toString(2));
+                        outOct.push(charCode.toString(8));
+                        outHex.push(charCode.toString(16).toUpperCase());
+                    }
+                } else {
+                    let base = (type === 'binary') ? 2 : (type === 'octal') ? 8 : 16;
+                    let parts = inputTrimmed.split(/\s+/); 
+                    
+                    for (let i = 0; i < parts.length; i++) {
+                        let num = parseInt(parts[i], base);
+                        if (isNaN(num)) throw "Error";
+                        
+                        outText += String.fromCharCode(num);
+                        outBin.push(num.toString(2));
+                        outOct.push(num.toString(8));
+                        outHex.push(num.toString(16).toUpperCase());
+                    }
+                }
+
+                // طباعة النتائج فوراً
+                document.getElementById('outText').innerText = outText;
+                document.getElementById('outBin').innerText = outBin.join(" ");
+                document.getElementById('outOct').innerText = outOct.join(" ");
+                document.getElementById('outHex').innerText = outHex.join(" ");
+            } catch (e) {
+                typeLabel.innerText = '⚠️ يوجد خطأ في صيغة الإدخال!';
+                typeLabel.style.color = '#f38ba8';
+            }
+        }
+
+        function clearOutputs() {
+            document.getElementById('outText').innerText = "";
+            document.getElementById('outBin').innerText = "";
+            document.getElementById('outOct').innerText = "";
+            document.getElementById('outHex').innerText = "";
+        }
+
+        function clearAll() {
+            document.getElementById('inputValue').value = "";
+            clearOutputs();
+            const typeLabel = document.getElementById('detectedType');
+            typeLabel.innerText = 'النوع: بانتظار الإدخال...';
+            typeLabel.style.color = '#bac2de';
+            document.getElementById('inputValue').focus();
+        }
+    </script>
+
+</body>
+</html>
