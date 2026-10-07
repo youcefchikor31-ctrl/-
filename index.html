@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محول الأنظمة الذكي</title>
+    <title>محول الأنظمة - نسخة ثانية ثانوي</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,10 +18,9 @@
             box-sizing: border-box;
         }
 
-        /* إطار الهاتف */
         .phone-mockup {
-            width: 360px;
-            height: 720px;
+            width: 380px;
+            height: 750px;
             background-color: #1e1e2e;
             border: 14px solid #11111b;
             border-radius: 40px;
@@ -30,7 +29,6 @@
             overflow: hidden;
         }
 
-        /* ثقب الكاميرا الأمامية */
         .camera-hole {
             width: 16px;
             height: 16px;
@@ -40,30 +38,62 @@
             top: 15px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 10;
+            z-index: 100;
             box-shadow: inset 0 -2px 2px rgba(255,255,255,0.2);
         }
 
-        /* الشاشة الداخلية للتطبيق */
-        .app-screen {
+        /* حاوية الشاشات */
+        .screen-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* الشاشات (الرئيسية وشاشة الشرح) */
+        .app-screen, .explain-screen {
             width: 100%;
             height: 100%;
             overflow-y: auto;
             background-color: #1e1e2e;
             padding: 50px 20px 20px;
             box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .app-screen::-webkit-scrollbar {
-            display: none;
+        .app-screen::-webkit-scrollbar, .explain-screen::-webkit-scrollbar { display: none; }
+
+        /* الشاشة الثانية مخفية على اليسار في البداية */
+        .explain-screen {
+            transform: translateX(-100%);
+            background-color: #181825;
+            z-index: 50;
+        }
+        
+        .explain-screen.active {
+            transform: translateX(0);
+        }
+
+        .mode-toggle-btn {
+            background: #313244;
+            color: #a6e3a1;
+            border: 1px solid #45475a;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+            width: 100%;
         }
 
         h2 {
             text-align: center;
             color: #89b4fa;
-            font-size: 20px;
+            font-size: 18px;
             margin-top: 0;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         #detectedType {
@@ -71,7 +101,6 @@
             font-weight: bold;
             margin-bottom: 5px;
             color: #bac2de;
-            transition: color 0.3s ease;
         }
 
         textarea {
@@ -87,50 +116,98 @@
             resize: vertical;
             margin-bottom: 10px;
         }
-        
-        textarea:focus {
-            border-color: #89b4fa;
-        }
-        
+
         .clear-btn {
             width: 100%;
             background: #f38ba8;
             color: #11111b;
             border: none;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
+            margin-bottom: 20px;
         }
-        
-        .clear-btn:hover {
-            background: #eba0ac;
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            margin-top: 10px;
         }
-        
+
+        .result-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fab387;
+        }
+
+        .solve-btn {
+            background: #f9e2af;
+            color: #11111b;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none; /* تظهر فقط عند وجود إدخال */
+        }
+
         .result-box {
-            background: #181825;
+            background: #11111b;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             word-wrap: break-word;
             min-height: 25px;
             font-family: monospace;
             text-align: left;
             direction: ltr;
-            color: #cba6f7;
             border: 1px solid #45475a;
             font-size: 13px;
         }
-        
-        .result-label {
-            font-size: 13px;
+
+        .hidden-mode { display: none !important; }
+
+        /* تصميم شاشة الشرح */
+        .back-btn {
+            background: #89b4fa;
+            color: #11111b;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: bold;
-            color: #fab387;
-            margin-bottom: 5px;
-            display: block;
-            margin-top: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .explanation-content {
+            color: #cdd6f4;
+            font-size: 14px;
+            line-height: 1.8;
+            background: #313244;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed #89b4fa;
+            white-space: pre-line;
+        }
+
+        .math-step {
+            direction: ltr;
+            text-align: right;
+            display: inline-block;
+            width: 100%;
+            color: #a6e3a1;
+            font-family: monospace;
+            font-size: 15px;
+            background: #11111b;
+            padding: 5px;
+            border-radius: 5px;
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -139,102 +216,283 @@
     <div class="phone-mockup">
         <div class="camera-hole"></div>
         
-        <div class="app-screen">
-            <h2>المحول الذكي الفوري</h2>
-            
-            <div id="detectedType">النوع: بانتظار الإدخال...</div>
-            <textarea id="inputValue" rows="4" placeholder="اكتب النص، أو الصق الشفرة هنا... (تذكر المسافات بين الشفرات)" oninput="autoConvert()"></textarea>
+        <div class="screen-container">
+            <!-- الشاشة الرئيسية -->
+            <div id="mainScreen" class="app-screen">
+                <button id="modeBtn" class="mode-toggle-btn" onclick="toggleMode()">🌐 إخفاء اللغات (وضع الرياضيات)</button>
+                
+                <h2>المحول الذكي</h2>
+                
+                <div id="detectedType">النوع: بانتظار الإدخال...</div>
+                <textarea id="inputValue" rows="3" placeholder="اكتب النص أو الأرقام هنا..." oninput="autoConvert()"></textarea>
 
-            <button class="clear-btn" onclick="clearAll()">🗑️ مسح الكل</button>
+                <button class="clear-btn" onclick="clearAll()">🗑️ مسح الكل</button>
 
-            <div>
-                <span class="result-label">النص المترجم:</span>
-                <div id="outText" class="result-box"></div>
+                <div>
+                    <div id="textSection">
+                        <div class="result-header">
+                            <span class="result-label">النص (اللغة):</span>
+                        </div>
+                        <div id="outText" class="result-box" style="color: #f38ba8;"></div>
+                    </div>
 
-                <span class="result-label">النظام الثنائي (Binary):</span>
-                <div id="outBin" class="result-box"></div>
+                    <div class="result-header">
+                        <span class="result-label" style="color: #89dceb;">النظام العشري (Base 10):</span>
+                        <button class="solve-btn solve-dec" onclick="openExplanation('decimal')">📝 الحل</button>
+                    </div>
+                    <div id="outDec" class="result-box" style="color: #89dceb;"></div>
 
-                <span class="result-label">النظام الثماني (Octal):</span>
-                <div id="outOct" class="result-box"></div>
+                    <div class="result-header">
+                        <span class="result-label" style="color: #a6e3a1;">النظام الثنائي (Base 2):</span>
+                        <button class="solve-btn solve-bin" onclick="openExplanation('binary')">📝 الحل</button>
+                    </div>
+                    <div id="outBin" class="result-box" style="color: #a6e3a1;"></div>
 
-                <span class="result-label">النظام السداسي عشر (Hexadecimal):</span>
-                <div id="outHex" class="result-box"></div>
+                    <div class="result-header">
+                        <span class="result-label" style="color: #fab387;">النظام الثماني (Base 8):</span>
+                        <button class="solve-btn solve-oct" onclick="openExplanation('octal')">📝 الحل</button>
+                    </div>
+                    <div id="outOct" class="result-box" style="color: #fab387;"></div>
+
+                    <div class="result-header">
+                        <span class="result-label" style="color: #89b4fa;">النظام السداسي عشر (Base 16):</span>
+                        <button class="solve-btn solve-hex" onclick="openExplanation('hex')">📝 الحل</button>
+                    </div>
+                    <div id="outHex" class="result-box" style="color: #89b4fa;"></div>
+                </div>
+            </div>
+
+            <!-- شاشة الشرح والخطوات -->
+            <div id="explanationScreen" class="explain-screen">
+                <button class="back-btn" onclick="closeExplanation()">⬅ رجوع</button>
+                <h2 id="explainTitle" style="color: #f9e2af;">خطوات الحل</h2>
+                <div id="explainContent" class="explanation-content">
+                    <!-- سيتم توليد الشرح هنا برمجياً -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        let showLanguages = true;
+        let currentDetectedType = 'text';
+        let firstInputItem = '';
+        let hasInput = false;
+
+        function toggleMode() {
+            showLanguages = !showLanguages;
+            const textSection = document.getElementById('textSection');
+            const modeBtn = document.getElementById('modeBtn');
+            
+            if (showLanguages) {
+                textSection.classList.remove('hidden-mode');
+                modeBtn.innerText = "🌐 إخفاء اللغات (وضع الرياضيات)";
+            } else {
+                textSection.classList.add('hidden-mode');
+                modeBtn.innerText = "🔢 إظهار اللغات";
+            }
+            autoConvert();
+        }
+
+        function toggleSolveButtons(show) {
+            const btns = document.querySelectorAll('.solve-btn');
+            btns.forEach(btn => btn.style.display = show ? 'block' : 'none');
+        }
+
         function autoConvert() {
-            let input = document.getElementById('inputValue').value;
-            let inputTrimmed = input.trim();
+            let inputTrimmed = document.getElementById('inputValue').value.trim();
             const typeLabel = document.getElementById('detectedType');
 
-            // إذا كان المربع فارغاً
             if (!inputTrimmed) {
                 clearOutputs();
                 typeLabel.innerText = 'النوع: بانتظار الإدخال...';
                 typeLabel.style.color = '#bac2de';
+                firstInputItem = '';
+                hasInput = false;
+                toggleSolveButtons(false);
                 return;
             }
 
-            // خوارزمية التعرف التلقائي
-            let type = 'text';
-            if (/^[01\s]+$/.test(inputTrimmed)) {
-                type = 'binary';
-            } else if (/^[0-7\s]+$/.test(inputTrimmed)) {
-                type = 'octal';
-            } else if (/^[0-9a-fA-F\s]+$/.test(inputTrimmed)) {
-                type = 'hex';
+            hasInput = true;
+            toggleSolveButtons(true);
+            let parts = inputTrimmed.split(/\s+/);
+            firstInputItem = parts[0]; 
+
+            // التعرف
+            if (/^[01]+$/.test(inputTrimmed.replace(/\s/g, ''))) {
+                currentDetectedType = 'binary';
+                typeLabel.innerText = 'النوع الحالي: نظام ثنائي (Base 2)';
+                typeLabel.style.color = '#a6e3a1';
+            } else if (/^[0-9]+$/.test(inputTrimmed.replace(/\s/g, ''))) {
+                currentDetectedType = 'decimal';
+                typeLabel.innerText = 'النوع الحالي: نظام عشري (Base 10)';
+                typeLabel.style.color = '#89dceb';
+            } else if (/^[0-9a-fA-F]+$/.test(inputTrimmed.replace(/\s/g, '')) && !showLanguages) {
+                currentDetectedType = 'hex';
+                typeLabel.innerText = 'النوع الحالي: نظام سداسي عشر (Base 16)';
+                typeLabel.style.color = '#89b4fa';
+            } else {
+                currentDetectedType = 'text';
+                typeLabel.innerText = 'النوع الحالي: نص / حروف';
+                typeLabel.style.color = '#f38ba8';
             }
 
-            // تغيير لون واسم حالة الإدخال
-            let typeName = "";
-            if (type === 'binary') { typeName = 'نظام ثنائي (Binary)'; typeLabel.style.color = '#a6e3a1'; }
-            else if (type === 'octal') { typeName = 'نظام ثماني (Octal)'; typeLabel.style.color = '#fab387'; }
-            else if (type === 'hex') { typeName = 'نظام سداسي عشر (Hex)'; typeLabel.style.color = '#89b4fa'; }
-            else { typeName = 'نص (Text)'; typeLabel.style.color = '#f38ba8'; }
-
-            typeLabel.innerText = 'تم التعرف على: ' + typeName;
-
-            let outText = "", outBin = [], outOct = [], outHex = [];
+            let outText = "", outDec = [], outBin = [], outOct = [], outHex = [];
 
             try {
-                if (type === 'text') {
+                if (currentDetectedType === 'text') {
                     outText = inputTrimmed;
                     for (let i = 0; i < inputTrimmed.length; i++) {
                         let charCode = inputTrimmed.charCodeAt(i);
+                        outDec.push(charCode);
                         outBin.push(charCode.toString(2));
                         outOct.push(charCode.toString(8));
                         outHex.push(charCode.toString(16).toUpperCase());
                     }
                 } else {
-                    let base = (type === 'binary') ? 2 : (type === 'octal') ? 8 : 16;
-                    let parts = inputTrimmed.split(/\s+/); 
+                    let base = (currentDetectedType === 'binary') ? 2 : (currentDetectedType === 'decimal') ? 10 : 16;
                     
                     for (let i = 0; i < parts.length; i++) {
                         let num = parseInt(parts[i], base);
                         if (isNaN(num)) throw "Error";
                         
                         outText += String.fromCharCode(num);
+                        outDec.push(num.toString(10));
                         outBin.push(num.toString(2));
                         outOct.push(num.toString(8));
                         outHex.push(num.toString(16).toUpperCase());
                     }
                 }
 
-                // طباعة النتائج فوراً
                 document.getElementById('outText').innerText = outText;
+                document.getElementById('outDec').innerText = outDec.join(" ");
                 document.getElementById('outBin').innerText = outBin.join(" ");
                 document.getElementById('outOct').innerText = outOct.join(" ");
                 document.getElementById('outHex').innerText = outHex.join(" ");
+
             } catch (e) {
-                typeLabel.innerText = '⚠️ يوجد خطأ في صيغة الإدخال!';
+                typeLabel.innerText = '⚠️ خطأ في الإدخال';
                 typeLabel.style.color = '#f38ba8';
             }
         }
 
+        // دوال التنقل بين الشاشات
+        function openExplanation(targetSystem) {
+            document.getElementById('explanationScreen').classList.add('active');
+            generateDetailedSteps(targetSystem);
+        }
+
+        function closeExplanation() {
+            document.getElementById('explanationScreen').classList.remove('active');
+        }
+
+        // توليد الخطوات الرياضية
+        function generateDetailedSteps(targetSystem) {
+            const titleObj = document.getElementById('explainTitle');
+            const contentObj = document.getElementById('explainContent');
+            
+            if (!firstInputItem) return;
+
+            let sourceBase = (currentDetectedType === 'binary') ? 2 : (currentDetectedType === 'decimal') ? 10 : (currentDetectedType === 'hex') ? 16 : 'text';
+            let targetBase = (targetSystem === 'binary') ? 2 : (targetSystem === 'decimal') ? 10 : (targetSystem === 'octal') ? 8 : 16;
+            
+            let decimalValue = 0;
+            if (sourceBase === 'text') {
+                decimalValue = firstInputItem.charCodeAt(0);
+            } else {
+                decimalValue = parseInt(firstInputItem, sourceBase);
+            }
+
+            titleObj.innerText = `طريقة التحويل لـ ${targetSystem}`;
+            let exp = `نقوم بدراسة العنصر الأول المدخل: \n<span class="math-step">${firstInputItem}</span>\n\n`;
+
+            if (sourceBase === targetBase) {
+                exp += "الرقم المدخل هو نفسه النظام المطلوب، لا يوجد تحويل.";
+                contentObj.innerHTML = exp;
+                return;
+            }
+
+            // إذا كان المدخل نصياً
+            if (sourceBase === 'text') {
+                exp += `📌 الحرف في الحاسوب يترجم إلى رقم عشري حسب جدول (Unicode).\n`;
+                exp += `الحرف "${firstInputItem.charAt(0)}" قيمته العشرية هي: \n<span class="math-step">${decimalValue}</span>\n\n`;
+                sourceBase = 10; // نعتبره الآن عشري لنكمل التحويل
+            }
+
+            // التحويل إلى العشري (النشر)
+            if (targetBase === 10) {
+                exp += `📌 للتحويل من النظام (الأساس ${sourceBase}) إلى العشري، نستخدم طريقة **النشر (مجموع الأوزان)**:\n\n`;
+                let strVal = firstInputItem;
+                let stepParts = [];
+                let calcParts = [];
+                for (let i = 0; i < strVal.length; i++) {
+                    let bit = parseInt(strVal[strVal.length - 1 - i], sourceBase);
+                    stepParts.push(`(${bit} × ${sourceBase}^${i})`);
+                    calcParts.push(bit * Math.pow(sourceBase, i));
+                }
+                exp += `النشر:\n<span class="math-step">${stepParts.reverse().join(" + ")}</span>\n`;
+                exp += `الجمع:\n<span class="math-step">${calcParts.reverse().join(" + ")} = ${decimalValue}</span>\n`;
+            }
+            
+            // التحويل من العشري لأي نظام آخر (القسمة الإقليدية)
+            else if (sourceBase === 10) {
+                exp += `📌 للتحويل من العشري إلى الأساس ${targetBase}، نستخدم **القسمة الإقليدية المتتالية** على ${targetBase}:\n\n`;
+                let tempNum = decimalValue;
+                let remainders = [];
+                while (tempNum > 0) {
+                    let q = Math.floor(tempNum / targetBase);
+                    let r = tempNum % targetBase;
+                    let rHex = r.toString(targetBase).toUpperCase();
+                    exp += `<span class="math-step">${tempNum} ÷ ${targetBase} = ${q} | الباقي: ${rHex}</span>\n`;
+                    remainders.push(rHex);
+                    tempNum = q;
+                }
+                if (remainders.length === 0) remainders.push("0");
+                exp += `\n👈 نقرأ البواقي من الأسفل للأعلى لنجد النتيجة:\n<span class="math-step">(${remainders.reverse().join("")})</span>`;
+            }
+
+            // التحويل من الثنائي إلى السداسي عشر أو الثماني (التجميع)
+            else if (sourceBase === 2 && (targetBase === 16 || targetBase === 8)) {
+                let groupSize = (targetBase === 16) ? 4 : 3;
+                exp += `📌 للتحويل من الثنائي إلى الأساس ${targetBase}، نقوم **بتجميع** الرقم من اليمين إلى اليسار في مجموعات من (${groupSize} بتات):\n\n`;
+                let binStr = firstInputItem;
+                // إضافة أصفار على اليسار لتكتمل المجموعات
+                while(binStr.length % groupSize !== 0) { binStr = "0" + binStr; }
+                
+                let result = "";
+                for(let i=0; i<binStr.length; i+=groupSize) {
+                    let chunk = binStr.slice(i, i+groupSize);
+                    let val = parseInt(chunk, 2).toString(targetBase).toUpperCase();
+                    exp += `<span class="math-step">${chunk} ➔ ${val}</span>\n`;
+                    result += val;
+                }
+                exp += `\nالنتيجة النهائية بالأساس ${targetBase} هي:\n<span class="math-step">${result}</span>`;
+            }
+
+            // إذا كانت هناك تحويلات أخرى معقدة (مثلا 16 إلى 2)
+            else if (sourceBase === 16 && targetBase === 2) {
+                exp += `📌 للتحويل من السداسي عشر إلى الثنائي، نقوم **بتفكيك** كل رقم إلى 4 بتات:\n\n`;
+                let result = "";
+                for(let i=0; i<firstInputItem.length; i++) {
+                    let char = firstInputItem[i];
+                    let val = parseInt(char, 16).toString(2);
+                    while(val.length < 4) val = "0" + val;
+                    exp += `<span class="math-step">${char} ➔ ${val}</span>\n`;
+                    result += val;
+                }
+                exp += `\nالنتيجة مجمعة:\n<span class="math-step">${result}</span>`;
+            }
+            
+            else {
+                exp += `\n*يتم تحويل هذا الرقم عادة عن طريق المرور بالنظام الثنائي أو العشري أولاً بنفس الطرق المذكورة أعلاه.*`;
+            }
+
+            contentObj.innerHTML = exp;
+        }
+
         function clearOutputs() {
             document.getElementById('outText').innerText = "";
+            document.getElementById('outDec').innerText = "";
             document.getElementById('outBin').innerText = "";
             document.getElementById('outOct').innerText = "";
             document.getElementById('outHex').innerText = "";
@@ -242,10 +500,7 @@
 
         function clearAll() {
             document.getElementById('inputValue').value = "";
-            clearOutputs();
-            const typeLabel = document.getElementById('detectedType');
-            typeLabel.innerText = 'النوع: بانتظار الإدخال...';
-            typeLabel.style.color = '#bac2de';
+            autoConvert();
             document.getElementById('inputValue').focus();
         }
     </script>
